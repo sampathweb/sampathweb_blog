@@ -4,3 +4,6 @@ __pycache__
 env/
 conf.py
 output/
+.doit.db.db
+cache/
+.ipynb_checkpoints
