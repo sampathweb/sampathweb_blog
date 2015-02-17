@@ -4,6 +4,8 @@ __pycache__
 env/
 output/
 .doit.db.db
+.doit.db
 cache/
-cache/*
+cache/posts/
+cache/webassets/
 .ipynb_checkpoints
