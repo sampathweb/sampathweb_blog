@@ -23,10 +23,10 @@ h2 {
 }
 
 button.btn {
-    height: 3em;
-    width: 8em;
+    height: 2em;
+    width: 5em;
     background-color: green;
-    font-size: 2em;
+    font-size: 1em;
     color: #ffffff;
 
 }

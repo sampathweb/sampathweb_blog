@@ -1,12 +1,13 @@
 $(function() {
   var APP = {
     game_choices: ["0,0", "0,1", "0,2", "1,0", "1,1", "1,2", "2,0", "2,1", "2,2"],
+    player_handle: "",
     player_a: [],
     player_b: [],
     game_started: false,
     game_result: '',
     ws: null,  // Will contain websocket connection
-    ws_url: 'ws://' + 'localhost:8888' + '/tic-tac-toe/',
+    ws_url: 'ws://' + 'localhost:8001' + '/tic-tac-toe/',
 
     reset_board: function() {
       $("ul.row button").each( function() {
@@ -21,16 +22,18 @@ $(function() {
       });
     },
 
-    initialize_socket: function(ws_url, player_handle, onmessage_cb, onerror_cb, onopen_cb, onclose_cb) {
+    initialize_socket: function(ws_url, onmessage_cb, onerror_cb, onopen_cb, onclose_cb) {
 
-      var ws = new WebSocket(ws_url + player_handle);
+      var ws = new WebSocket(ws_url);
 
-      ws.onmessage = function(message) {
-        onmessage_cb(message);
+      ws.onmessage = function(e) {
+        data = JSON.parse(e.data);
+        onmessage_cb(data);
       };
 
-      ws.onerror = function(message) {
-        onerror_cb(message);
+      ws.onerror = function(e) {
+        data = JSON.parse(e.data);
+        onerror_cb(data);
       };
 
       ws.onopen = function() {
@@ -46,35 +49,40 @@ $(function() {
     },
 
     send_msg: function(data) {
-      message = JSON.stringify(data);
+      var message = JSON.stringify(data);
       APP.ws.send(message);
-    },
-
-    parse_msg_data: function(data) {
-      data = JSON.parse(data);
-      console.log('WS Msg: ', data.text);
-      return data;
     },
 
     recvd_msg: function(data) {
-      message = JSON.stringify(data);
-      APP.ws.send(message);
+      console.log(data);
+      if (data.action == 'connect') {
+        APP.player_handle = data.player_handle;
+      } else if (data.action == 'player-move') {
+
+      }
     },
 
     ws_open: function(data) {
-      message = JSON.stringify(data);
-      APP.ws.send(message);
+      // var message = JSON.stringify(data);
+      // APP.ws.send(message);
     },
 
     ws_close: function() {
       APP.ws.close();
+    },
+
+    ws_error: function(message) {
+      console.log('WS Err: ', message);
     }
   };
 
-  APP.reset_board();
-  var player_handle = $('.player-handle').value
-  console.log(player_handle);
-  APP.ws = APP.initialize_socket(APP.ws_url, player_handle, APP.recvd_msg, APP.ws_error, APP.ws_open, APP.ws_close);
+  var initalize_game = function() {
+    APP.reset_board();
+    APP.ws = APP.initialize_socket(APP.ws_url, APP.recvd_msg, APP.ws_error, APP.ws_open, APP.ws_close);
+  };
+
+  // On open, connect to socket and reset board
+  initalize_game();
 
   // On Play Gain, reset the game
   $("button.action").on("click", function(event) {
@@ -84,7 +92,12 @@ $(function() {
       // terminate the game
     } else {
       // start the game
-      APP.start_game();
+      // APP.start_game();
+      var data = {
+        'handle': APP.player_handle,
+        'action': 'ready'
+      }
+      APP.send_msg(data);
     }
   });
 
